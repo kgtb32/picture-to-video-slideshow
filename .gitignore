@@ -1,0 +1,5 @@
+venv/
+base_images/
+cropped_images/
+out_images
+video.mp4
