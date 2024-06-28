@@ -2,6 +2,7 @@ from os import listdir
 import subprocess
 import shutil
 import argparse
+import threading
 
 parser = argparse.ArgumentParser(
                     prog='Image to Video Slideshow Generator',
@@ -25,9 +26,10 @@ TIME_PER_IMAGE = args.TIME_PER_IMAGE
 OUT_FILE = args.OUT_FILE
 VIDEO_RESOLUTION = args.VIDEO_RESOLUTION
 
-index = 0
+print(listdir(BASE_FOLDER))
 
-for image in listdir(BASE_FOLDER):
+def handle_image(image):
+    print("handling image", "{}/{}".format(BASE_FOLDER, image),)
     subprocess.run([
         "convert",
         "{}/{}".format(BASE_FOLDER, image),
@@ -43,9 +45,25 @@ for image in listdir(BASE_FOLDER):
         IMAGE_SIZE,
         "{}/{}".format(CROPPED_FOLDER,image)
     ])
+
+
+threads = []
+
+index = 0
+
+for image in listdir(BASE_FOLDER):
+    thread = threading.Thread(target=handle_image, args=(image,))
+    thread.start()
+    threads.append(thread)
+    index+=1
+
+for t in threads:
+    t.join()
+
+for image in listdir(BASE_FOLDER):
     for _ in range(TIME_PER_IMAGE):
         file_name = "img_0{}.jpg".format(f'{index:025d}')
-        shutil.copyfile("{}/{}".format(CROPPED_FOLDER,image), "{}/{}".format(OUT_FOLDER,file_name))
+        shutil.copyfile("./{}/{}".format(CROPPED_FOLDER,image), "{}/{}".format(OUT_FOLDER,file_name))
         index+=1
     print("treating item {}", image)
     
